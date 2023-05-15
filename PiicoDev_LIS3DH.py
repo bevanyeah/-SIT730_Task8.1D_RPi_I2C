@@ -165,6 +165,7 @@ class PiicoDev_LIS3DH(object):
     @property
     def acceleration(self):
         """Return x,y,z acceleration in a 3-tuple. unit: :math:`m/s^2"""
+        
         d = self._read(_OUT_X_L | 0x80, 6, bytestring=True)
         x, y, z = unpack('<hhh', d)
         divisors = {2: 1670.295, 4: 835.1476, 8: 417.6757, 16: 139.1912}  # (LSB/1g) / 9.80665
@@ -248,11 +249,12 @@ class PiicoDev_LIS3DH(object):
             sleep_ms(round(total_delay / avg_count))
         avg = tuple(value / avg_count for value in shake_accel)
         total_accel = sqrt(sum(map(lambda x: x * x, avg)))
-        return total_accel > threshold
+        return total_accel
 
     def _read(self, reg, N, bytestring=False):
         try:
             reg |= 0x80  # bit 7 enables address auto-increment (esoteric feature specific to LIS3DH)
+
             d = self.i2c.readfrom_mem(self.address, reg, N)
             if bytestring: return bytes(d)
             tmp = int.from_bytes(d, 'little')
